@@ -1,7 +1,6 @@
 var irc = require('irc');
 const request = require('request'), url = 'https://api.coinmarketcap.com/v1/ticker/', channel = '##cryptotrading'
 
-
 var client = new irc.Client('irc.freenode.org', 'btcb0t', {
   channels: [channel],
 });
