@@ -78,6 +78,7 @@ function getVolume(callback) {
 boldify = function(text) {return irc.colors.wrap("bold", text)}
 
 prettifyNumber = function (x,color = false) {
+  if(x == null) { x = "n.a." }
   var formattedString = x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   if(!color) return formattedString;
   if(x > 0)
