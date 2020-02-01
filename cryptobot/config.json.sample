@@ -1,0 +1,13 @@
+{
+    "irc": {
+        "server": "irc.freenode.org",
+        "nickname": "ircbot",
+        "channels": [
+            "#channel"
+        ]
+    },
+    "secrets": {
+        "youtube": "key",
+        "wolframalpha": "key"
+    }
+}
