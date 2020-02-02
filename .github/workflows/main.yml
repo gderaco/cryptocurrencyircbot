@@ -16,6 +16,8 @@ jobs:
         password: ${{ secrets.PASSWORD }}
         port: ${{ secrets.PORT }}
         script: |
-          git clone git@github.com:gderaco/cryptocurrencyircbot.git
+          git clone git@github.com:gderaco/cryptocurrencyircbot.git ircbot
+          cd ircbot
           cp ~/.local/share/cryptocurrencyircbot/config.json .
           docker build -t ircbot . && docker run ircbot
+          rm -rf ircbot
