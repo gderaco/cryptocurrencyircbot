@@ -1,0 +1,19 @@
+{
+  "name": "ircbot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "irc": "^0.5.2",
+    "he": "^1.2.0",
+    "request": "^2.88.0",
+    "youtube-search": "^1.1.4",
+    "unescape": "^1.0.1"
+  }
+}
