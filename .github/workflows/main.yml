@@ -18,6 +18,6 @@ jobs:
         script: |
           git clone https://github.com/gderaco/cryptocurrencyircbot.git ircbot
           cd ircbot
-          cp ~/.local/share/cryptocurrencyircbot/config.json .
+          cp ~/.local/share/cryptocurrencyircbot/config.json ./cryptobot
           docker build -t ircbot . && docker run ircbot
           rm -rf ircbot
