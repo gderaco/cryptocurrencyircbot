@@ -4,6 +4,9 @@ var request = require('request');
 var config = require('./config.json')
 let coinmarketApiUrl = 'https://api.coinmarketcap.com/v1/ticker/';
 
+const jsdom = require("jsdom");
+const { JSDOM } = jsdom;
+
 var client = new irc.Client(config.irc.server, config.irc.nickname, {
     channels: config.irc.channels
 });
@@ -66,6 +69,12 @@ client.addListener('message', function (from, to, message) {
 
                 getYoutubeVideoByQuery(message, function (video) {
                     client.notice(to, video);
+                });
+            }
+            else if (message.startsWith('.c-italy')) {
+
+                getCoronaVirusStatsForItaly(function (joke) {
+                    client.notice(to, joke);
                 });
             }
         }
@@ -154,6 +163,17 @@ function getAJoke(callback) {
     };
     request(options, function (error, response, body) {
         callback(body)
+    });
+}
+
+function getCoronaVirusStatsForItaly(callback) {
+    var options = {
+        url: "https://www.worldometers.info/coronavirus/"
+    };
+    request(options, function (error, response, body) {
+        var infetti = "Infetti : " + new JSDOM(body).window.document.querySelector("#table3 > tbody > tr:nth-child(4) > td:nth-child(2)").innerHTML
+        var morti = " - Morti : " + new JSDOM(body).window.document.querySelector("#table3 > tbody > tr:nth-child(4) > td:nth-child(4)").innerHTML
+        callback(infetti + morti)
     });
 }
 
