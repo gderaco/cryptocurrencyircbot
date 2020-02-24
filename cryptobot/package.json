@@ -14,6 +14,7 @@
     "he": "^1.2.0",
     "request": "^2.88.0",
     "youtube-search": "^1.1.4",
-    "unescape": "^1.0.1"
+    "unescape": "^1.0.1",
+    "jsdom": "^16.2.0"
   }
 }
