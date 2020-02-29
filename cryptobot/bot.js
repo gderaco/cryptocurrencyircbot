@@ -71,9 +71,9 @@ client.addListener('message', function (from, to, message) {
                     client.notice(to, video);
                 });
             }
-            else if (message.startsWith('.c-italy')) {
+            else if (message.startsWith('.c')) {
 
-                getCoronaVirusStatsForItaly(function (joke) {
+                getCoronaVirusStats(message.substring(2),function (joke) {
                     client.notice(to, joke);
                 });
             }
@@ -166,14 +166,28 @@ function getAJoke(callback) {
     });
 }
 
-function getCoronaVirusStatsForItaly(callback) {
+function getCoronaVirusStats(country, callback) {
     var options = {
         url: "https://www.worldometers.info/coronavirus/"
     };
     request(options, function (error, response, body) {
-        var infetti = "Infetti : " + new JSDOM(body).window.document.querySelector("#table3 > tbody > tr:nth-child(4) > td:nth-child(2)").innerHTML
-        var morti = " - Morti : " + new JSDOM(body).window.document.querySelector("#table3 > tbody > tr:nth-child(4) > td:nth-child(4)").innerHTML
-        callback(infetti + morti)
+        var data =
+            Array.from(new JSDOM(body).window.document.querySelector("#main_table_countries > tbody").children)
+                .map(e => {
+                    var row = new JSDOM("<table><tr>" + e.innerHTML + "</table></tr>").window.document
+                    return {
+                        country: row.querySelector("body > table > tbody > tr > td:nth-child(1)").textContent.trim(),
+                        cases: row.querySelector("body > table > tbody > tr > td:nth-child(2)").textContent.trim(),
+                        deaths: row.querySelector("body > table > tbody > tr > td:nth-child(4)").textContent.trim(),
+                        recovered: row.querySelector("body > table > tbody > tr > td:nth-child(7)").textContent.trim(),
+                    }
+                })
+        var selectedData = data.filter( data => data.country.replace(" ","").toLowerCase() == country.replace(" ","").toLowerCase());
+        if(selectedData != null && selectedData.length == 1)
+        {
+            var foundData = selectedData[0]
+            callback("Country: " + foundData.country + " - Cases: " + foundData.cases + " - Deaths: " + foundData.deaths + " - Recovered: " + foundData.recovered)
+        }
     });
 }
 

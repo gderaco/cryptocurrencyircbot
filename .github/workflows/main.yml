@@ -21,5 +21,5 @@ jobs:
           cd ircbot &&
           cp ~/.local/share/cryptocurrencyircbot/config.json ./cryptobot &&
           docker stop ircbot && docker rm ircbot
-          docker build -t ircbot . && docker run -d --name ircbot ircbot &&
+          docker build -t ircbot . && docker run -d --name --restart ircbot ircbot &&
           cd ../.. && rm -rf $(echo $dir)
