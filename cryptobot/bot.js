@@ -2,10 +2,7 @@ var irc = require('irc');
 var he = require('he');
 var request = require('request');
 var config = require('./config.json')
-let coinmarketApiUrl = 'https://api.coinmarketcap.com/v1/ticker/';
-
-const jsdom = require("jsdom");
-const { JSDOM } = jsdom;
+let cryptoApiUrl = 'https://api.coingecko.com/api/v3/';
 
 var client = new irc.Client(config.irc.server, config.irc.nickname, {
     channels: config.irc.channels
@@ -29,27 +26,18 @@ client.addListener('message', function (from, to, message) {
             }, this);
         }
         else {
-            if (message == '!vol') {
-                getVolume(function (currency) {
-                    var message = currency.map(function (item, i) {
-                        return boldify("[" + item.symbol + "]") + " $" + prettifyNumber(parseFloat(item["24h_volume_usd"]))
-                    })
-                        .join(" ");
-                    client.notice(to, from + " ~ " + message);
-                });
-            }
-            else if (message.startsWith('!')) {
+            if (message.startsWith('!')) {
                 getCurrency(message.substring(1), function (currency) {
-
                     if (currency != null) {
-                        var btcToUsd = parseFloat(currency.price_usd) / parseFloat(currency.price_btc)
-                        var marketCapInBtc = parseFloat(currency.market_cap_usd) / btcToUsd;
                         client.notice(to, from + " ~ " +
-                            "(" + currency.rank + ") " +
-                            boldify("[" + currency.symbol + "] ") +
-                            boldify("Price(Ƀ/$): ") + currency.price_btc + "/" + currency.price_usd + " ~ " +
-                            boldify("%(H/D/W)[$]: ") + prettifyNumber(currency.percent_change_1h, true) + "/" + prettifyNumber(currency.percent_change_24h, true) + "/" + prettifyNumber(currency.percent_change_7d, true) + " ~ " +
-                            boldify("MarketCap(Ƀ/$) : ") + prettifyNumber(Math.round(marketCapInBtc)) + "/" + prettifyNumber(Math.round(currency.market_cap_usd)));
+                            "(" + currency.market_cap_rank + ") " +
+                            boldify("[" + currency.symbol.toUpperCase() + "] ") +
+                            boldify("Price(Ƀ/$): ") + currency.market_data.current_price.btc.toFixed(8) + "/" + currency.market_data.current_price.usd.toFixed(5) + " ~ " +
+                            boldify("%(H/D/W)[$]: ") +
+                            prettifyNumber(currency.market_data.price_change_percentage_1h_in_currency.usd.toFixed(2), true) + "/" +
+                            prettifyNumber(currency.market_data.price_change_percentage_24h_in_currency.usd.toFixed(2), true) + "/" +
+                            prettifyNumber(currency.market_data.price_change_percentage_7d_in_currency.usd.toFixed(2), true) + " ~ " +
+                            boldify("MarketCap(Ƀ/$) : ") + prettifyNumber(currency.market_data.market_cap.usd) + "/" + prettifyNumber(currency.market_data.market_cap.btc));
                     }
                 });
             }
@@ -71,53 +59,16 @@ client.addListener('message', function (from, to, message) {
                     client.notice(to, video);
                 });
             }
-            else if (message.startsWith('.c')) {
-
-                getCoronaVirusStats(message.substring(2),function (joke) {
-                    client.notice(to, joke);
-                });
-            }
-        }
-
-        function getCurrency(name, callback) {
-            request(coinmarketApiUrl, (error, response, body) => {
-                if (!error && response.statusCode === 200) {
-                    var currency = JSON.parse(body).filter(function (item) {
-                        return item.id.toUpperCase().includes(name.toUpperCase()) || item.name.toUpperCase().includes(name.toUpperCase()) || item.symbol.toUpperCase().includes(name.toUpperCase())
-                    });
-                    if (currency.length > 0) {
-                        callback(currency[0])
-                    }
-                } else {
-                    console.log("Got an error: ", error, ", status code: ", response.statusCode)
-                    callback(null)
-                }
-            })
         }
     } catch (e) {
         console.log(e);
     }
 });
 
-function getVolume(callback) {
-    request(coinmarketApiUrl, (error, response, body) => {
+function getCurrency(name, callback) {
+    request(cryptoApiUrl + "coins/" + name, (error, response, body) => {
         if (!error && response.statusCode === 200) {
-            var currencies = JSON.parse(body)
-                .filter(function (item) {
-                    return item["24h_volume_usd"] != null;
-                })
-                .sort(function (a, b) {
-
-                    var volumeA = parseFloat(a["24h_volume_usd"]);
-                    var volumeB = parseFloat(b["24h_volume_usd"]);
-
-                    if (volumeA < volumeB) return 1;
-                    if (volumeA > volumeB) return -1;
-                    return 0;
-                })
-                .slice(0, 10)
-
-            callback(currencies);
+            callback(JSON.parse(body))
         } else {
             console.log("Got an error: ", error, ", status code: ", response.statusCode)
             callback(null)
@@ -163,31 +114,6 @@ function getAJoke(callback) {
     };
     request(options, function (error, response, body) {
         callback(body)
-    });
-}
-
-function getCoronaVirusStats(country, callback) {
-    var options = {
-        url: "https://www.worldometers.info/coronavirus/"
-    };
-    request(options, function (error, response, body) {
-        var data =
-            Array.from(new JSDOM(body).window.document.querySelector("#main_table_countries > tbody").children)
-                .map(e => {
-                    var row = new JSDOM("<table><tr>" + e.innerHTML + "</table></tr>").window.document
-                    return {
-                        country: row.querySelector("body > table > tbody > tr > td:nth-child(1)").textContent.trim(),
-                        cases: row.querySelector("body > table > tbody > tr > td:nth-child(2)").textContent.trim(),
-                        deaths: row.querySelector("body > table > tbody > tr > td:nth-child(4)").textContent.trim(),
-                        recovered: row.querySelector("body > table > tbody > tr > td:nth-child(7)").textContent.trim(),
-                    }
-                })
-        var selectedData = data.filter( data => data.country.replace(" ","").toLowerCase() == country.replace(" ","").toLowerCase());
-        if(selectedData != null && selectedData.length == 1)
-        {
-            var foundData = selectedData[0]
-            callback("Country: " + foundData.country + " - Cases: " + foundData.cases + " - Deaths: " + foundData.deaths + " - Recovered: " + foundData.recovered)
-        }
     });
 }
 

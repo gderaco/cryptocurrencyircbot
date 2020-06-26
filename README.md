@@ -7,6 +7,6 @@
 * given a link, the bot will say the title of the page
 
 ### Commands
-* `!$crypto` (for istance `!siacoin`), `!vol` (displays the top 10 cryptocurrencies by volume)
+* `!$crypto` (for istance `!siacoin`)
 * `.j` will say a joke
 * `.q $question-or-calculation-or-anything-else` will query wolfram alpha
